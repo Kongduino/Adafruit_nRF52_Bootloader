@@ -40,7 +40,7 @@ endif
 SD_FILENAME  = $(SD_NAME)_nrf52_$(SD_VERSION)
 SD_HEX       = $(SD_PATH)/$(SD_FILENAME)_softdevice.hex
 
-MBR_HEX			 = lib/softdevice/mbr/hex/mbr_nrf52_2.4.1_mbr.hex
+MBR_HEX = lib/softdevice/mbr/hex/mbr_nrf52_2.4.1_mbr.hex
 
 # Detect the operating system
 # The "OS" environment variable on Windows is always "Windows_NT"
@@ -74,7 +74,7 @@ UF2_FAMILY_ID_BOOTLOADER = 0xd663823c
 
 # Toolchain commands
 # Should be added to your PATH
-CROSS_COMPILE ?= arm-none-eabi-
+CROSS_COMPILE ?= /Users/dda/Library/Arduino15/packages/adafruit/tools/arm-none-eabi-gcc/9-2019q4/bin/arm-none-eabi-
 CC      = $(CROSS_COMPILE)gcc
 AS      = $(CROSS_COMPILE)as
 OBJCOPY = $(CROSS_COMPILE)objcopy
