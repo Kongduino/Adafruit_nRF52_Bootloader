@@ -64,32 +64,58 @@ void one() {
   __enable_irq();
 }
 
-void showColor(uint8_t r, uint8_t g, uint8_t b) {
-  for (uint8_t ix = 0; ix < 8; ix++) {
-    if (g & 0b10000000) one();
-    else zero();
-    g = g << 1;
-  }
-  for (uint8_t ix = 0; ix < 8; ix++) {
-    if (r & 0b10000000) one();
-    else zero();
-    r = r << 1;
-  }
-  for (uint8_t ix = 0; ix < 8; ix++) {
-    if (b & 0b10000000) one();
-    else zero();
-    b = b << 1;
-  }
+void lightRed() {
+  PRINTF("[lightRed]:\tGRB: 0x00 0xFF 0x00");
+  NRF_P0->OUTCLR = (1UL << WS1228B);
+  // RGB: 0xFF 0x00 0x00
+  // GRB: 0x00 0xFF 0x00
+  for (uint8_t ix = 0; ix < 8; ix++)
+    zero();
+  for (uint8_t ix = 0; ix < 8; ix++)
+    one();
+  for (uint8_t ix = 0; ix < 8; ix++)
+    zero();
 }
 
-void lightUp() {
-  NRF_P0->OUT = (1UL << 25);
-  NRF_P0->OUT ^= (1UL << 25);
-  showColor(0, 0xFF, 0); // Green
+void lightGreen() {
+  PRINTF("[lightGreen]:\tGRB: 0xFF 0x00 0x00");
+  NRF_P0->OUTCLR = (1UL << WS1228B);
+  // RGB: 0x00 0xFF 0x00
+  // GRB: 0xFF 0x00 0x00
+  for (uint8_t ix = 0; ix < 8; ix++)
+    one();
+  for (uint8_t ix = 0; ix < 16; ix++)
+    zero();
 }
 
-void lightDFU() {
-  NRF_P0->OUT = (1UL << 25);
-  NRF_P0->OUT ^= (1UL << 25);
-  showColor(0xFF, 0xFF, 0); // yellow
+void lightYellow() {
+  PRINTF("[lightYellow]:\tGRB: 0xFF 0xFF 0x00\r\n");
+  // NRF_P0->OUTCLR = (1UL << WS1228B);
+  // RGB: 0xFF 0xFF 0x00
+  // GRB: 0xFF 0xFF 0x00
+  for (uint8_t ix = 0; ix < 16; ix++)
+    one();
+  for (uint8_t ix = 0; ix < 8; ix++)
+    zero();
 }
+
+void lightBlue() {
+  PRINTF("[lightBlue]:\tGRB: 0x00 0x00 0xFF\r\n");
+  // RGB: 0x00 0x00 0xFF
+  // GRB: 0x00 0x00 0xFF
+  for (uint8_t ix = 0; ix < 16; ix++)
+    zero();
+  for (uint8_t ix = 0; ix < 8; ix++)
+    one();
+}
+
+void lightOff() {
+  nrf_gpio_cfg_output(WS1228B);
+  PRINTF("[lightOff]:\tClearing pin %d\r\n", WS1228B);
+  NRF_P0->OUTCLR = (1UL << WS1228B);
+  // RGB: 0x00 0x00 0x00
+  // GRB: 0x00 0x00 0x00
+  for (uint8_t ix = 0; ix < 24; ix++)
+    zero();
+}
+

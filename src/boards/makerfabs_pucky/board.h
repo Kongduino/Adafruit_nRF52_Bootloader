@@ -22,9 +22,9 @@
  * THE SOFTWARE.
  */
 
-#ifndef PCA10056_H
-#define PCA10056_H
-
+#ifndef PUCKY
+#define PUCKY
+#include "nrf_delay.h"
 /*------------------------------------------------------------------*/
 /* LED
  *------------------------------------------------------------------*/
@@ -37,9 +37,9 @@
 /* BUTTON
  *------------------------------------------------------------------*/
 // #define BUTTON_DFU (5)
-#undef BUTTON_DFU
+#define BUTTON_DFU 5
 // #define BUTTON_DFU_OTA 12
-// #define BUTTON_PULL NRF_GPIO_PIN_PULLUP
+#define BUTTON_PULL NRF_GPIO_PIN_PULLUP
 
 //--------------------------------------------------------------------+
 // BLE OTA
@@ -59,6 +59,6 @@
 #define UF2_BOARD_ID "makerfabs-pucky-v1"
 #define UF2_INDEX_URL "https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52840-DK"
 
-#define PUCKY
+#define WS1228B 25
 #endif // PUCKY
 

@@ -76,12 +76,19 @@ void usb_teardown(void);
 // tinyusb function that handles power event (detected, ready, removed)
 // We must call it within SD's SOC event handler, or set it as power event handler if SD is not enabled.
 extern void tusb_hal_nrf_power_event(uint32_t event);
-
 #else
 #define usb_init(x) led_state(STATE_USB_MOUNTED)  // mark nrf52832 as mounted
 #define usb_teardown()
-
 #endif
+
+#ifdef WS1228B
+void lightGreen();
+void lightBlue();
+void lightRed();
+void lightYellow();
+void lightOff();
+#endif
+
 
 /*
  * Blinking patterns:
@@ -174,11 +181,13 @@ int main(void) {
   BOOTLOADER_VERSION_REGISTER = (MK_BOOTLOADER_VERSION);
   board_init();
   bootloader_init();
-  PRINTF("Bootloader Start\r\n");
+  PRINTF("\n\n===================================\nBootloader Start\r\n");
   led_state(STATE_BOOTLOADER_STARTED);
-  #ifdef PUCKY
-  void lightUp();
-  lightUp();
+  #ifdef WS1228B
+  PRINTF("WS1228B Yellow\r\n");
+  lightOff();
+  nrf_delay_ms(10);
+  lightYellow();
   #endif
   // When updating SoftDevice, bootloader will reset before swapping SD
   if (bootloader_dfu_sd_in_progress()) {
@@ -214,10 +223,14 @@ int main(void) {
     (*dbl_reset_mem) = 0;
     // start application
     PRINTF("Starting app...\r\n");
-  #ifdef PUCKY
-  void lightUp();
-  lightUp();
-  #endif
+    #ifdef WS1228B
+    PRINTF("WS1228B lightGreen\r\n");
+    lightOff();
+    nrf_delay_ms(10);
+    lightGreen();
+    nrf_delay_ms(1000);
+    lightOff();
+    #endif
     bootloader_app_start();
   }
   // No application was loaded or we need to reenter the bootloader
@@ -227,6 +240,7 @@ int main(void) {
     NRF_POWER->GPREGRET = DFU_MAGIC_OTA_RESET;
   }
   NVIC_SystemReset();
+  PRINTF("===================================\r\n");
 }
 
 static void check_dfu_mode(void) {
@@ -247,19 +261,41 @@ static void check_dfu_mode(void) {
     NRF_POWER->GPREGRET = 0;
   }
   // skip dfu entirely
-  if (dfu_skip) {
+  PRINTF("dfu_skip? ");
+  if (dfu_start) {
+    PRINTF("Yes!\r\n");
     return;
   }
+  PRINTF("No.\r\n");
+  PRINTF("dfu_start? ");
+  if (dfu_start) {
+    PRINTF("Yes! Reason:\r\n");
+    if (_ota_dfu) PRINTF("\t_ota_dfu\r\n");
+    else if (serial_only_dfu) PRINTF("\tserial_only_dfu\r\n");
+    else if (uf2_dfu) PRINTF("\tuf2_dfu\r\n");
+    else PRINTF("\tDFU_DBL_RESET_MAGIC (%ld) && reason_reset_pin (%d)\r\n", (*dbl_reset_mem), reason_reset_pin);
+  }
+  PRINTF("No.\r\n");
   /*------------- Determine DFU mode (Serial, OTA, FRESET or normal) -------------*/
   // DFU button pressed
 #if defined(BUTTON_DFU)
   dfu_start = dfu_start || button_pressed(BUTTON_DFU);
 #endif
-  // DFU + FRESET are pressed --> OTA
+  PRINTF("BUTTON_DFU? ");
+  if (dfu_start) {
+    PRINTF("Yes! Reason:\r\n");
+    if (_ota_dfu) PRINTF("\t_ota_dfu\r\n");
+    else if (serial_only_dfu) PRINTF("\tserial_only_dfu\r\n");
+    else if (uf2_dfu) PRINTF("\tuf2_dfu\r\n");
+    else PRINTF("\tDFU_DBL_RESET_MAGIC (%ld) && reason_reset_pin (%d)\r\n", (*dbl_reset_mem), reason_reset_pin);
+  }
+  PRINTF("No.\r\n");
+// DFU + FRESET are pressed --> OTA
 #if defined(BUTTON_DFU) && defined(BUTTON_DFU_OTA)
   _ota_dfu = _ota_dfu || (button_pressed(BUTTON_DFU) && button_pressed(BUTTON_DFU_OTA));
 #endif
   bool const valid_app = bootloader_app_is_valid();
+  PRINTF("bootloader_app_is_valid: %d\r\n", valid_app);
   bool const just_start_app = valid_app && !dfu_start && (*dbl_reset_mem) == DFU_DBL_RESET_APP;
   if (!just_start_app && APP_ASKS_FOR_SINGLE_TAP_RESET()) {
     dfu_start = 1;
@@ -298,18 +334,26 @@ static void check_dfu_mode(void) {
   }
   // Enter DFU mode accordingly to input
   if (dfu_start || !valid_app) {
-    #ifdef PUCKY
-    void lightDFU();
-    lightDFU();
-    #endif
     if (_ota_dfu) {
       led_state(STATE_BLE_DISCONNECTED);
       if (!_sd_inited) mbr_init_sd();
       _sd_inited = true;
       ble_stack_init();
+      #ifdef WS1228B
+      PRINTF("WS1228B lightBlue\r\n");
+      lightOff();
+      nrf_delay_ms(10);
+      lightBlue();
+      #endif
     } else {
       led_state(STATE_USB_UNMOUNTED);
       usb_init(serial_only_dfu);
+      #ifdef WS1228B
+      PRINTF("WS1228B lightRed\r\n");
+      lightOff();
+      nrf_delay_ms(10);
+      lightRed();
+      #endif
     }
     // Initiate an update of the firmware.
     if (APP_ASKS_FOR_SINGLE_TAP_RESET() || uf2_dfu || serial_only_dfu) {
